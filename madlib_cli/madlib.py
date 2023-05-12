@@ -1,3 +1,6 @@
+import re
+
+
 def Welcome_user():
     print(
         """
@@ -16,42 +19,37 @@ def Welcome_user():
 *************************************
 """
     )
+
+
 # Ask user some Question use input
+def prompts(lst):
+    input_arr = []
+    for element in lst:
+        user_input = input(f"Enter a {element} :")
+        input_arr.append(user_input)
+    return input_arr
+
 
 # read_template function
-def read_template(file_path):
-    with open(file_path, "r") as f:
+def read_template(path):
+    with open(path, "r") as f:
         read_result = f.read()
     return read_result
 
 
+def parse_template(template):
+    variables = re.findall(r"{([^}]+)}", template)
+    stripped = re.sub("{[^}]+}", "{}", template)
+    return stripped, tuple(variables)
 
 
-def parse_template(x):
-    
-    extracts = []
-    current = ""
-    stripped_str = ""
-    for char in x:
-        if char != "{":
-            stripped_str += char
-            current = ""
-
-        elif char != "}":
-            stripped_str += char
-            extracts.append(current)
-            current = ""
-
-        elif char != "}":
-            current += char
-        stripped_str += char
-    
-    return stripped_str, tuple(extracts)
+def merge(template, values):
+    return template.format(*values)
 
 
-
-def merge(stripp, input):
-    return stripp.format(*input)
+def new_file(merged_template):
+    with open("assets/new_file.txt", mode="w") as f:
+        f.write(merged_template)
 
 
 def read_template_raises_exception_with_bad_path():
@@ -59,11 +57,14 @@ def read_template_raises_exception_with_bad_path():
         path = "missing.txt"
         read_template(path)
     except FileNotFoundError:
-       raise FileNotFoundError(' file was not found')
+        raise FileNotFoundError(" file was not found")
 
-def excute():
-    Welcome_user()    
-    content = read_template('../assets/dark_and_stormy_night_template.txt')
 
 if __name__ == "__main__":
-   excute()
+    Welcome_user()
+    content = read_template("assets/dark_and_stormy_night_template.txt")
+    stripped, parts = parse_template(content)
+    user_prompts = prompts(parts)
+    merged_txt = merge(stripped, user_prompts)
+    print(merged_txt)
+    new_file(merged_txt)
